@@ -1,0 +1,151 @@
+package isen.MetaHeuristic;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Scanner;
+
+import com.sun.xml.internal.ws.policy.spi.PolicyAssertionValidator.Fitness;
+
+/**
+ * @author Loic
+ *
+ */
+public class Application {
+	
+	public static void main( String[] args) {
+
+		// test de toutes les méthodes de encoding
+		///Commentaire de test de push
+		
+		Encoding enc = new Encoding();		 
+      float matrice2[][];
+		
+		LocalSearch ls= new LocalSearch();		
+		
+		Annealing test = new Annealing();
+		
+		Fitnes obj = new Fitnes();
+		float parcouretudiant;
+		
+		
+		Scanner sc = new Scanner(System.in);
+		
+		System.out.println("que voulez vous choiisir comme alpha [0,1]  ");
+		
+		float alpha = sc.nextFloat();
+		
+		ArrayList<SolutionGlobale> listesolutionglobale = new ArrayList<SolutionGlobale>(); 
+//Ici je fais ma boucle ou je genere a chaque iteration une solution globale
+		
+
+		
+		
+		Scanner sc1 = new Scanner(System.in);
+		System.out.println("choisissez le nombre de cluster  ");
+			AlgoKMeans kmean = new AlgoKMeans();
+			ArrayList<Position> listpos = new ArrayList();
+			Position pos = new Position();
+			Position_bus station = new Position_bus();
+			int dim=2;
+			int nbSamples = 100;
+			kmean.createSamples(nbSamples, dim);
+			int nbClusters = sc1.nextInt();
+		
+
+			
+			Position etudiant = new Position();
+			
+			parcouretudiant =0;
+
+			System.out.println("classification of " +nbSamples+ " samples of dimension " + dim + " into " + nbClusters + " clusters.");
+			long start = System.currentTimeMillis();
+			kmean.initialize(nbClusters, dim);
+			kmean.kMeanCluster();
+			long end = System.currentTimeMillis();
+			System.out.println("after " + (end-start) + " ms ");
+			kmean.clusters.forEach(c->c.computeStats());
+			// Print out clustering results.
+			double error = 0;
+			int nb=0;
+			for(Cluster cluster:kmean.clusters)
+			{
+				if (cluster.dataSet.size()>0)
+				{
+					pos.x =  (float) kmean.clusters.get(nb).centroid.getValue(0) ;
+					pos.y =  (float) kmean.clusters.get(nb).centroid.getValue(1) ;
+					System.out.println("vas y augmente ta taille batard   " + kmean.clusters.get(nb).dataSet.size());
+					for (int g=0 ; g<kmean.clusters.get(nb).dataSet.size() ; g++) {
+						etudiant.x =  (float) kmean.clusters.get(nb).dataSet.get(g).normValues[0];
+						etudiant.y = (float) kmean.clusters.get(nb).dataSet.get(g).normValues[1];
+						parcouretudiant += (float) Math.sqrt(    Math.pow(etudiant.x -pos.x, 2)  +  Math.pow(etudiant.y -pos.y, 2));
+						
+					}
+					listpos.add( pos);
+					
+					
+					pos= new Position();
+					etudiant = new Position();
+					nb++;
+					error += cluster.moyDist;
+					
+				}
+			}
+			error = error/(nb*dim);
+			System.out.println("gobal error= " + String.format(Locale.ENGLISH, "%.2f", (error*100)) + " % ");
+			
+	
+			System.out.println("distance totale des etudiants   " + parcouretudiant);
+			
+			
+		
+		
+			
+			
+
+
+	       matrice2 = station.matrixOfDist(listpos);
+	       
+	       for (int z =0 ; z< 10 ; z++) {
+	       
+	       ArrayList<Integer> masolu1 = new ArrayList<Integer>(); 
+	       ArrayList<Integer> masolu2 = new ArrayList<Integer>(); 
+	       
+	       
+	       
+	       
+	       
+	       
+	       
+	       
+	       	ArrayList<Integer> s = new ArrayList<Integer>();
+	       
+	    	   
+	    	   masolu1 = ls.ls_tsp_float(nbClusters, 50, matrice2); 
+	    	   s = enc.permutationencoding(nbClusters);
+	    	   masolu2 = test.annealingtsp_float(s, 100, matrice2);
+	      
+	    	   if (obj.objectivefonction_TSP_float(masolu1, matrice2) > obj.objectivefonction_TSP_float(masolu2, matrice2) ){
+	    		   SolutionGlobale solutionglobale = new SolutionGlobale(alpha ,masolu2,parcouretudiant,  obj.objectivefonction_TSP_float(masolu2, matrice2),listpos);
+	    		   listesolutionglobale.add(solutionglobale);
+	    	   }
+	       
+	    	   else {
+	    		   SolutionGlobale solutionglobale = new SolutionGlobale(alpha ,masolu1,parcouretudiant,  obj.objectivefonction_TSP_float(masolu1, matrice2),listpos);
+	    		   listesolutionglobale.add(solutionglobale);
+	    		   
+	    	   }
+System.out.println ("voici le pacourttudiant  et distanceiti  " + parcouretudiant + "   "+obj.objectivefonction_TSP_float(masolu1, matrice2) ) ;      
+System.out.println ("voici 10 solutions globales avec alpha =  " + alpha) ;
+	       }
+	       
+
+	       float minimum = listesolutionglobale.get(0).objective;
+	        for (int index = 0 ; index< listesolutionglobale.size() ; index++) {
+	        	System.out.println(listesolutionglobale.get(index).objective);
+	        	if (minimum > listesolutionglobale.get(index).objective) {  minimum = listesolutionglobale.get(index).objective ; }
+       }
+	        
+		
+	}
+}
