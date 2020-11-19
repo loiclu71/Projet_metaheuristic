@@ -1,3 +1,5 @@
 # Projet_metaheuristic
 Metaheurtic
-Metaheuristic pour planifier les itinéraires de transport en commun
+planifier les itinéraires de transport en commun
+
+# Algorithme Java
